@@ -49,9 +49,7 @@ function getContentFile<
     }
   }).pipe(
     map((rawContentFile) => {
-      const isNgx = filePath.split('.').pop() === 'ngx';
-
-      if (isNgx) {
+      if (filePath.endsWith('ngx')) {
         // TODO: change to parseNgxFile and return angularComponents data
         const { content, attributes } =
           parseRawContentFile<Attributes>(rawContentFile);
