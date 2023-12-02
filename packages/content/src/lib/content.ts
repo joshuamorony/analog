@@ -18,15 +18,21 @@ function getContentFile<
   slug: string,
   fallback: string
 ): Observable<ContentFile<Attributes | Record<string, never>>> {
-  const filePath = `/src/content/${prefix}${slug}.md`;
-  const contentFile = contentFiles[filePath];
+  const basePath = `/src/content/${prefix}${slug}`;
+  let filePath = `${basePath}.ngx`;
+  let contentFile = contentFiles[filePath];
   if (!contentFile) {
-    return of({
-      filename: filePath,
-      attributes: {},
-      slug: '',
-      content: fallback,
-    });
+    filePath = `${basePath}.md`;
+
+    contentFile = contentFiles[filePath];
+    if (!contentFile) {
+      return of({
+        filename: filePath,
+        attributes: {},
+        slug: '',
+        content: fallback,
+      });
+    }
   }
 
   return new Observable<string>((observer) => {
@@ -43,6 +49,22 @@ function getContentFile<
     }
   }).pipe(
     map((rawContentFile) => {
+      const isNgx = filePath.split('.').pop() === 'ngx';
+
+      if (isNgx) {
+        // TODO: change to parseNgxFile and return angularComponents data
+        const { content, attributes } =
+          parseRawContentFile<Attributes>(rawContentFile);
+
+        return {
+          filename: filePath,
+          slug,
+          attributes,
+          content,
+          // ngComponents
+        };
+      }
+
       const { content, attributes } =
         parseRawContentFile<Attributes>(rawContentFile);
 
