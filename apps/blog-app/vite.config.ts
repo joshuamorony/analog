@@ -25,6 +25,7 @@ export default defineConfig(() => {
               '/api/rss.xml',
               '/blog/2022-12-27-my-first-post',
               '/blog/my-second-post',
+              '/blog/my-third-post',
             ];
           },
           sitemap: {

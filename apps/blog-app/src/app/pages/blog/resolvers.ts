@@ -10,6 +10,7 @@ function injectActivePostAttributes(
   const file = injectContentFiles<PostAttributes>().find((contentFile) => {
     return (
       contentFile.filename === `/src/content/${route.params['slug']}.md` ||
+      contentFile.filename === `/src/content/${route.params['slug']}.ngx` ||
       contentFile.slug === route.params['slug']
     );
   });
