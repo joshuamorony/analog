@@ -6,7 +6,7 @@
  * @returns
  */
 export const getContentFilesList = () =>
-  import.meta.glob<Record<string, any>>('/src/content/**/*.md', {
+  import.meta.glob<Record<string, any>>('/src/content/**/*.{md,ngx}', {
     eager: true,
     import: 'default',
     query: { 'analog-content-list': true },
@@ -18,6 +18,6 @@ export const getContentFilesList = () =>
  * @returns
  */
 export const getContentFiles = () =>
-  import.meta.glob(['/src/content/**/*.md'], {
+  import.meta.glob(['/src/content/**/*.{md,ngx}'], {
     as: 'raw',
   });

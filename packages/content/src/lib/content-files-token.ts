@@ -15,7 +15,9 @@ export const CONTENT_FILES_TOKEN = new InjectionToken<
     contentFilesList.forEach((item) => {
       const fileParts = item.filename.split('/');
       const filePath = fileParts.slice(0, fileParts.length - 1).join('/');
-      lookup[item.filename] = `${filePath}/${item.slug}.md`;
+      const fileExtParts = fileParts[fileParts.length - 1].split('.');
+      const fileExt = fileExtParts[fileExtParts.length - 1];
+      lookup[item.filename] = `${filePath}/${item.slug}.${fileExt}`;
     });
 
     const objectUsingSlugAttribute: Record<string, () => Promise<string>> = {};
