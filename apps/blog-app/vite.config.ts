@@ -17,7 +17,7 @@ export default defineConfig(() => {
       {
         name: 'ngx-parser',
         async transform(code, id) {
-          if (!id.includes('.ngx')) {
+          if (!id.includes('.md')) {
             return;
           }
 
