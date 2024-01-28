@@ -1,5 +1,5 @@
 import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing';
-import { Tree } from '@nx/devkit';
+import { Tree, addProjectConfiguration } from '@nx/devkit';
 
 import { analogToAngularGenerator } from './generator';
 import { AnalogToAngularGeneratorSchema } from './schema';
@@ -73,22 +73,98 @@ const analogFile = `
 
 describe('analog-to-angular generator', () => {
   let tree: Tree;
+
+  const projectOneFiles = [
+    'apps/project-one/my-component.analog',
+    'apps/project-one/my-feature/another.analog',
+  ];
+
+  const projectTwoFiles = [
+    'apps/project-two/my-component.analog',
+    'apps/project-two/my-feature/another.analog',
+  ];
+
+  const libFiles = ['libs/my-file.analog', 'libs/my-component.analog'];
+
+  const allFiles = [...projectOneFiles, ...projectTwoFiles, ...libFiles];
+
   const options: AnalogToAngularGeneratorSchema = {
-    path: 'libs/my-file.analog',
+    path: libFiles[0],
   };
 
   beforeEach(() => {
     tree = createTreeWithEmptyWorkspace({ layout: 'apps-libs' });
-    tree.write(`libs/my-file.analog`, analogFile);
+
+    addProjectConfiguration(tree, 'project-one', {
+      root: './apps/project-one',
+    });
+
+    addProjectConfiguration(tree, 'another-project', {
+      root: './apps/another-project',
+    });
+
+    for (const path of allFiles) {
+      tree.write(path, analogFile);
+    }
   });
 
-  it('should write result of compileAnalogFile back to file', async () => {
-    await analogToAngularGenerator(tree, options);
-    const expected = compileAnalogFile('libs/my-file.analog', analogFile, true);
-    const actual = tree.read('libs/my-file.analog', 'utf8');
-    expect(actual).toEqual(expected);
+  describe('given path', () => {
+    it('should write result of compileAnalogFile back to file', async () => {
+      const testFile = libFiles[0];
+      const expected = compileAnalogFile(testFile, analogFile, true);
+      await analogToAngularGenerator(tree, options);
+      const actual = tree.read(testFile, 'utf8');
+      expect(actual).toEqual(expected);
+    });
+
+    it('should not convert other analog files', async () => {
+      await analogToAngularGenerator(tree, options);
+      const actual = tree.read(libFiles[1], 'utf8');
+      expect(actual).toEqual(analogFile);
+    });
   });
+
+  describe('given project', async () => {
+    it('should throw if project does not exist', async () => {
+      await expect(
+        analogToAngularGenerator(tree, { project: 'does-not-exit' })
+      ).rejects.toThrow();
+    });
+
+    it('should convert all analog files in specified project', async () => {
+      const expectedOne = compileAnalogFile(
+        projectOneFiles[0],
+        analogFile,
+        true
+      );
+      const expectedTwo = compileAnalogFile(
+        projectOneFiles[1],
+        analogFile,
+        true
+      );
+
+      await analogToAngularGenerator(tree, { project: 'project-one' });
+
+      const actualOne = tree.read(projectOneFiles[0], 'utf8');
+      const actualTwo = tree.read(projectOneFiles[1], 'utf8');
+
+      expect(actualOne).toEqual(expectedOne);
+      expect(actualTwo).toEqual(expectedTwo);
+    });
+
+    it('should not convert files in other projects', async () => {
+      await analogToAngularGenerator(tree, { project: 'project-one' });
+      const actual = tree.read(projectTwoFiles[0], 'utf8');
+      expect(actual).toEqual(analogFile);
+    });
+  });
+
+  // describe('given no path or project', async () => {
+  // it('should convert all analog files in workspace', () => {});
+  // });
 
   // it should exit if path and project supplied
   // it should exit if file does not end with .analog
+  // it should update imports e.g. import MyComponent to import { MyComponent } if updateImports
+  // it should rename .analog to .ts
 });

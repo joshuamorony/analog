@@ -1,8 +1,24 @@
-import { Tree, logger } from '@nx/devkit';
+import {
+  Tree,
+  getProjects,
+  logger,
+  readProjectConfiguration,
+  visitNotIgnoredFiles,
+} from '@nx/devkit';
 import { exit } from 'node:process';
 import { AnalogToAngularGeneratorSchema } from './schema';
 import { readFileSync } from 'node:fs';
 import { compileAnalogFile } from '../../lib/authoring/analog';
+
+function convertToAnalog(tree: Tree, fullPath: string) {
+  if (fullPath.endsWith('.analog')) {
+    const fileContent =
+      tree.read(fullPath, 'utf8') || readFileSync(fullPath, 'utf8');
+
+    const convertedToAngular = compileAnalogFile(fullPath, fileContent, true);
+    tree.write(fullPath, convertedToAngular);
+  }
+}
 
 export async function analogToAngularGenerator(
   tree: Tree,
@@ -23,17 +39,28 @@ export async function analogToAngularGenerator(
       return exit(1);
     }
 
-    // TODO: refactor
-    if (path.endsWith('.analog')) {
-      const fileContent = tree.read(path, 'utf8') || readFileSync(path, 'utf8');
-      const convertedToAngular = compileAnalogFile(path, fileContent, true);
-      tree.write(path, convertedToAngular);
-    }
+    convertToAnalog(tree, path);
   } else if (project) {
-    // TODO: handle project
-    logger.error(`[Analog] project not implemented`);
-    return exit(1);
+    const projectConfiguration = readProjectConfiguration(tree, project);
+
+    if (!projectConfiguration) {
+      throw `"${project}" project not found`;
+    }
+
+    visitNotIgnoredFiles(tree, projectConfiguration.root, (path) => {
+      convertToAnalog(tree, path);
+    });
+  } else {
+    const projects = getProjects(tree);
+    for (const project of projects.values()) {
+      visitNotIgnoredFiles(tree, project.root, (path) => {
+        convertToAnalog(tree, path);
+      });
+    }
   }
+
+  // TODO: update imports for .ts files
+  // visitNotIgnoredFiles
 }
 
 export default analogToAngularGenerator;

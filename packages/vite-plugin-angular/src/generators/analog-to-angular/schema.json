@@ -12,6 +12,10 @@
     "path": {
       "type": "string",
       "description": "Path to individual Analog component to convert"
+    },
+    "updateImports": {
+      "type": "boolean",
+      "description": "Automatically update component imports"
     }
   }
 }
