@@ -84,8 +84,11 @@ describe('analog-to-angular generator', () => {
 
   it('should write result of compileAnalogFile back to file', async () => {
     await analogToAngularGenerator(tree, options);
-    const expected = compileAnalogFile('libs/my-file.analog', analogFile);
+    const expected = compileAnalogFile('libs/my-file.analog', analogFile, true);
     const actual = tree.read('libs/my-file.analog', 'utf8');
     expect(actual).toEqual(expected);
   });
+
+  // it should exit if path and project supplied
+  // it should exit if file does not end with .analog
 });
