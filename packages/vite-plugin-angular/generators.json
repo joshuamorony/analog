@@ -1,0 +1,9 @@
+{
+  "generators": {
+    "analog-to-angular": {
+      "factory": "./src/generators/analog-to-angular/generator",
+      "schema": "./src/generators/analog-to-angular/schema.json",
+      "description": "analog-to-angular generator"
+    }
+  }
+}

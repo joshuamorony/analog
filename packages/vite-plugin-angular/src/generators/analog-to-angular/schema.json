@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "$id": "AnalogToAngular",
+  "title": "",
+  "type": "object",
+  "properties": {
+    "project": {
+      "type": "string",
+      "aliases": ["name", "projectName"],
+      "description": "Project to revert to standard Angular components"
+    },
+    "path": {
+      "type": "string",
+      "description": "Path to individual Analog component to convert"
+    }
+  }
+}
