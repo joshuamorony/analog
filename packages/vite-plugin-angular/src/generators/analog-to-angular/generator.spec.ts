@@ -8,6 +8,8 @@ import { compileAnalogFile } from '../../lib/authoring/analog';
 const preImportConvert = `
 import ComponentOne from './component-one.analog';
 import ComponentTwo from '../../ui/component-two.analog';
+import ComponentThree, { someFunc, SomeInterface } from 'src/app/my-component.analog'
+import { someFunc } from 'src/app/whatever.analog';
 
 @Component({})
 export class SomeComponent {}
@@ -16,6 +18,8 @@ export class SomeComponent {}
 const postImportConvert = `
 import { ComponentOne } from './component-one';
 import { ComponentTwo } from '../../ui/component-two';
+import { ComponentThree, someFunc, SomeInterface } from 'src/app/my-component'
+import { someFunc } from 'src/app/whatever.analog';
 
 @Component({})
 export class SomeComponent {}
@@ -209,6 +213,5 @@ describe('analog-to-angular generator', () => {
   // it should handle external styles/templates
   // it should update selectors
   // it should update ngOnInit/ngOnDestroy
-  // it should handle import updates for things exported from analog files
   // it should prettify
 });

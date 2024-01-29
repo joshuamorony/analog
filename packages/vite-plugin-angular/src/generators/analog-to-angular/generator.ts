@@ -29,11 +29,20 @@ function updateAnalogImports(
   if (fullPath.endsWith('.ts')) {
     const fileContent =
       tree.read(fullPath, 'utf8') || readFileSync(fullPath, 'utf8');
-    const importRegex = /import (\w+) from '(.*)\.analog'/g;
+    const importRegex = /import (\w+)(, \{(.*)\})? from '(.*).analog'/g;
     const updatedContent = fileContent.replace(
       importRegex,
-      `import { $1 } from '$2'`
+      (_match, defaultImport, _partialMatch, namedImports: string, path) => {
+        let imports = defaultImport;
+
+        if (namedImports) {
+          imports += (imports ? ',' : '') + namedImports.trimEnd();
+        }
+
+        return `import { ${imports} } from '${path}'`;
+      }
     );
+
     tree.write(fullPath, updatedContent);
   }
 }
