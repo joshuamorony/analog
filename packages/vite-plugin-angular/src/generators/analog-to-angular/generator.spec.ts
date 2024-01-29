@@ -117,8 +117,8 @@ describe('analog-to-angular generator', () => {
       root: './apps/project-one',
     });
 
-    addProjectConfiguration(tree, 'another-project', {
-      root: './apps/another-project',
+    addProjectConfiguration(tree, 'project-two', {
+      root: './apps/project-two',
     });
 
     for (const path of allAnalogFiles) {
@@ -183,6 +183,19 @@ describe('analog-to-angular generator', () => {
     });
   });
 
+  describe('given no path or project', () => {
+    it('should convert all analog files in workspace', async () => {
+      await analogToAngularGenerator(tree, {});
+      for (const file of allAnalogFiles) {
+        const convertedFileExists = tree.read(`${file}.ts`, 'utf8');
+        if (!convertedFileExists) {
+          console.debug(file);
+        }
+        expect(convertedFileExists).not.toBeNull();
+      }
+    });
+  });
+
   describe('given updateImports', () => {
     it('should update imports in other files', async () => {
       await analogToAngularGenerator(tree, { updateImports: true });
@@ -191,13 +204,8 @@ describe('analog-to-angular generator', () => {
     });
   });
 
-  // describe('given no path or project', async () => {
-  // it('should convert all analog files in workspace', () => {});
-  // });
-
   // it should exit if path and project supplied
   // it should exit if file does not end with .analog
-  // it should update imports e.g. import MyComponent to import { MyComponent } if updateImports
   // it should handle external styles/templates
-  // change selectors
+  // it should update selectors
 });

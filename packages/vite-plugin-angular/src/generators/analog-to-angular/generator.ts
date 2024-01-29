@@ -1,6 +1,5 @@
 import {
   Tree,
-  getProjects,
   logger,
   readProjectConfiguration,
   visitNotIgnoredFiles,
@@ -78,13 +77,10 @@ export async function analogToAngularGenerator(
       updateAnalogImports(tree, path, updateImports);
     });
   } else {
-    const projects = getProjects(tree);
-    for (const project of projects.values()) {
-      visitNotIgnoredFiles(tree, project.root, (path) => {
-        convertToAngular(tree, path);
-        updateAnalogImports(tree, path, updateImports);
-      });
-    }
+    visitNotIgnoredFiles(tree, '/', (path) => {
+      convertToAngular(tree, path);
+      updateAnalogImports(tree, path, updateImports);
+    });
   }
 }
 
