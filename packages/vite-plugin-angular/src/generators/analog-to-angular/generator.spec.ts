@@ -5,6 +5,22 @@ import { analogToAngularGenerator } from './generator';
 import { AnalogToAngularGeneratorSchema } from './schema';
 import { compileAnalogFile } from '../../lib/authoring/analog';
 
+const preImportConvert = `
+import ComponentOne from './component-one.analog';
+import ComponentTwo from '../../ui/component-two.analog';
+
+@Component({})
+export class SomeComponent {}
+`;
+
+const postImportConvert = `
+import { ComponentOne } from './component-one';
+import { ComponentTwo } from '../../ui/component-two';
+
+@Component({})
+export class SomeComponent {}
+`;
+
 const analogFile = `
 <script lang="ts">
   import {
@@ -86,7 +102,9 @@ describe('analog-to-angular generator', () => {
 
   const libFiles = ['libs/my-file', 'libs/my-component'];
 
-  const allFiles = [...projectOneFiles, ...projectTwoFiles, ...libFiles];
+  const allAnalogFiles = [...projectOneFiles, ...projectTwoFiles, ...libFiles];
+
+  const filesForImportUpdates = ['apps/project-one/some-other-component.ts'];
 
   const options: AnalogToAngularGeneratorSchema = {
     path: `${libFiles[0]}.analog`,
@@ -103,9 +121,11 @@ describe('analog-to-angular generator', () => {
       root: './apps/another-project',
     });
 
-    for (const path of allFiles) {
+    for (const path of allAnalogFiles) {
       tree.write(`${path}.analog`, analogFile);
     }
+
+    tree.write(filesForImportUpdates[0], preImportConvert);
   });
 
   describe('given path', () => {
@@ -163,6 +183,14 @@ describe('analog-to-angular generator', () => {
     });
   });
 
+  describe('given updateImports', () => {
+    it('should update imports in other files', async () => {
+      await analogToAngularGenerator(tree, { updateImports: true });
+      const actual = tree.read(filesForImportUpdates[0], 'utf8');
+      expect(actual).toEqual(postImportConvert);
+    });
+  });
+
   // describe('given no path or project', async () => {
   // it('should convert all analog files in workspace', () => {});
   // });
@@ -170,6 +198,6 @@ describe('analog-to-angular generator', () => {
   // it should exit if path and project supplied
   // it should exit if file does not end with .analog
   // it should update imports e.g. import MyComponent to import { MyComponent } if updateImports
-  // it should rename .analog to .ts
   // it should handle external styles/templates
+  // change selectors
 });

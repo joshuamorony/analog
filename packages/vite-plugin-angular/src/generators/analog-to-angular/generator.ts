@@ -20,15 +20,41 @@ function convertToAngular(tree: Tree, fullPath: string) {
   }
 }
 
+function updateAnalogImports(
+  tree: Tree,
+  fullPath: string,
+  shouldUpdate?: boolean
+) {
+  if (!shouldUpdate) return;
+
+  if (fullPath.endsWith('.ts')) {
+    const fileContent =
+      tree.read(fullPath, 'utf8') || readFileSync(fullPath, 'utf8');
+    const importRegex = /import (\w+) from '(.*)\.analog'/g;
+    const updatedContent = fileContent.replace(
+      importRegex,
+      `import { $1 } from '$2'`
+    );
+    tree.write(fullPath, updatedContent);
+  }
+}
+
 export async function analogToAngularGenerator(
   tree: Tree,
   options: AnalogToAngularGeneratorSchema
 ) {
-  const { path, project } = options;
+  const { path, project, updateImports } = options;
 
   if (path && project) {
     logger.error(
       `[Analog] Cannot pass both "path" and "project" to analogToAngularGenerator`
+    );
+    return exit(1);
+  }
+
+  if (path && updateImports) {
+    logger.error(
+      `[Analog] Import updates not supported when converting individual files`
     );
     return exit(1);
   }
@@ -49,18 +75,17 @@ export async function analogToAngularGenerator(
 
     visitNotIgnoredFiles(tree, projectConfiguration.root, (path) => {
       convertToAngular(tree, path);
+      updateAnalogImports(tree, path, updateImports);
     });
   } else {
     const projects = getProjects(tree);
     for (const project of projects.values()) {
       visitNotIgnoredFiles(tree, project.root, (path) => {
         convertToAngular(tree, path);
+        updateAnalogImports(tree, path, updateImports);
       });
     }
   }
-
-  // TODO: update imports for .ts files
-  // visitNotIgnoredFiles
 }
 
 export default analogToAngularGenerator;
