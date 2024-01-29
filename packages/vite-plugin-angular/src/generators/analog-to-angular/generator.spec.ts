@@ -208,4 +208,7 @@ describe('analog-to-angular generator', () => {
   // it should exit if file does not end with .analog
   // it should handle external styles/templates
   // it should update selectors
+  // it should update ngOnInit/ngOnDestroy
+  // it should handle import updates for things exported from analog files
+  // it should prettify
 });
