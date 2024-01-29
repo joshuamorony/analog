@@ -13,7 +13,22 @@
         "tsConfig": "packages/vite-plugin-angular/tsconfig.lib.json",
         "assets": [
           "packages/vite-plugin-angular/*.md",
-          "packages/vite-plugin-angular/migrations/migration.json"
+          "packages/vite-plugin-angular/migrations/migration.json",
+          {
+            "input": "./packages/vite-plugin-angular/src/generators",
+            "glob": "**/!(*.ts)",
+            "output": "./src/generators"
+          },
+          {
+            "input": "./packages/vite-plugin-angular/src/generators",
+            "glob": "**/*.d.ts",
+            "output": "./src/generators"
+          },
+          {
+            "input": "./packages/vite-plugin-angular",
+            "glob": "generators.json",
+            "output": "."
+          }
         ],
         "updateBuildableProjectDepsInPackageJson": false
       }
