@@ -10,13 +10,13 @@ import { AnalogToAngularGeneratorSchema } from './schema';
 import { readFileSync } from 'node:fs';
 import { compileAnalogFile } from '../../lib/authoring/analog';
 
-function convertToAnalog(tree: Tree, fullPath: string) {
+function convertToAngular(tree: Tree, fullPath: string) {
   if (fullPath.endsWith('.analog')) {
     const fileContent =
       tree.read(fullPath, 'utf8') || readFileSync(fullPath, 'utf8');
 
     const convertedToAngular = compileAnalogFile(fullPath, fileContent, true);
-    tree.write(fullPath, convertedToAngular);
+    tree.write(fullPath.replace('.analog', '.ts'), convertedToAngular);
   }
 }
 
@@ -35,11 +35,11 @@ export async function analogToAngularGenerator(
 
   if (path) {
     if (!tree.exists(path)) {
-      logger.error(`[Analog] "${path}" does not exit`);
+      logger.error(`[Analog] "${path}" does not exist`);
       return exit(1);
     }
 
-    convertToAnalog(tree, path);
+    convertToAngular(tree, path);
   } else if (project) {
     const projectConfiguration = readProjectConfiguration(tree, project);
 
@@ -48,13 +48,13 @@ export async function analogToAngularGenerator(
     }
 
     visitNotIgnoredFiles(tree, projectConfiguration.root, (path) => {
-      convertToAnalog(tree, path);
+      convertToAngular(tree, path);
     });
   } else {
     const projects = getProjects(tree);
     for (const project of projects.values()) {
       visitNotIgnoredFiles(tree, project.root, (path) => {
-        convertToAnalog(tree, path);
+        convertToAngular(tree, path);
       });
     }
   }
