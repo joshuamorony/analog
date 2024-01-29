@@ -14,7 +14,8 @@ function convertToAngular(tree: Tree, fullPath: string) {
     const fileContent =
       tree.read(fullPath, 'utf8') || readFileSync(fullPath, 'utf8');
 
-    const convertedToAngular = compileAnalogFile(fullPath, fileContent, true);
+    let convertedToAngular = compileAnalogFile(fullPath, fileContent, true);
+    convertedToAngular = prettifyResult(convertedToAngular);
     tree.write(fullPath.replace('.analog', '.ts'), convertedToAngular);
   }
 }
@@ -45,6 +46,12 @@ function updateAnalogImports(
 
     tree.write(fullPath, updatedContent);
   }
+}
+
+export function prettifyResult(contents: string) {
+  // update selector
+  const regex = /selector: '([a-z]+(-[a-z]+)*),.*',/;
+  return contents.replace(regex, "selector: '$1',");
 }
 
 export async function analogToAngularGenerator(

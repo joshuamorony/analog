@@ -1,7 +1,7 @@
 import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing';
 import { Tree, addProjectConfiguration } from '@nx/devkit';
 
-import { analogToAngularGenerator } from './generator';
+import { analogToAngularGenerator, prettifyResult } from './generator';
 import { AnalogToAngularGeneratorSchema } from './schema';
 import { compileAnalogFile } from '../../lib/authoring/analog';
 
@@ -142,7 +142,7 @@ describe('analog-to-angular generator', () => {
       );
       await analogToAngularGenerator(tree, options);
       const actual = tree.read(`${testFile}.ts`, 'utf8');
-      expect(actual).toEqual(expected);
+      expect(actual).toEqual(prettifyResult(expected));
     });
 
     it('should not convert other analog files', async () => {
@@ -176,8 +176,8 @@ describe('analog-to-angular generator', () => {
       const actualOne = tree.read(`${projectOneFiles[0]}.ts`, 'utf8');
       const actualTwo = tree.read(`${projectOneFiles[1]}.ts`, 'utf8');
 
-      expect(actualOne).toEqual(expectedOne);
-      expect(actualTwo).toEqual(expectedTwo);
+      expect(actualOne).toEqual(prettifyResult(expectedOne));
+      expect(actualTwo).toEqual(prettifyResult(expectedTwo));
     });
 
     it('should not convert files in other projects', async () => {
@@ -208,10 +208,16 @@ describe('analog-to-angular generator', () => {
     });
   });
 
+  it('should update selector to use standard format', async () => {
+    const testFile = libFiles[0];
+    await analogToAngularGenerator(tree, options);
+    const actual = tree.read(`${testFile}.ts`, 'utf8');
+    expect(actual).toContain(`selector: '${libFiles[0].split('/').pop()}'`);
+  });
+
   // it should exit if path and project supplied
   // it should exit if file does not end with .analog
   // it should handle external styles/templates
-  // it should update selectors
   // it should update ngOnInit/ngOnDestroy
   // it should prettify
 });
