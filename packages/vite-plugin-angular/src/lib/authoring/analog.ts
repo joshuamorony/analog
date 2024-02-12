@@ -101,18 +101,64 @@ export default class ${entityName} {
 
   // the `.analog` file
   if (scriptContent) {
+    const { autoImports, processedScriptContent } =
+      parseAutoImports(scriptContent);
+
     const project = new Project({ useInMemoryFileSystem: true });
     return processAnalogScript(
       filePath,
-      project.createSourceFile(filePath, scriptContent),
+      project.createSourceFile(filePath, processedScriptContent),
       project.createSourceFile(`${filePath}.virtual.ts`, source),
       ngType,
       entityName,
+      autoImports,
       shouldFormat
     );
   }
 
   return source;
+}
+
+function parseAutoImports(scriptContent: string) {
+  const namedImportsRegex = /{\s*([^}]*@[\w]+[^}]*)\s*}/g;
+  const namedImportRegex = /@(\w+)/g;
+  const defaultImportRegex = /import\s+@(\w+)/g;
+
+  const autoImports: string[] = [];
+
+  // handle named imports
+  let processedScriptContent = scriptContent.replace(
+    namedImportsRegex,
+    (match) => {
+      let modifiedMatch = match;
+      let individualMatch;
+
+      while ((individualMatch = namedImportRegex.exec(match)) !== null) {
+        autoImports.push(individualMatch[1]);
+
+        modifiedMatch = modifiedMatch.replace(
+          individualMatch[0],
+          individualMatch[1]
+        );
+      }
+
+      return modifiedMatch;
+    }
+  );
+
+  // handle default imports
+  processedScriptContent = processedScriptContent.replace(
+    defaultImportRegex,
+    (_, importName) => {
+      autoImports.push(importName);
+      return `import ${importName}`;
+    }
+  );
+
+  return {
+    autoImports,
+    processedScriptContent,
+  };
 }
 
 function processAnalogScript(
@@ -121,6 +167,7 @@ function processAnalogScript(
   targetSourceFile: SourceFile,
   ngType: 'Component' | 'Directive',
   entityName: string,
+  autoImports: string[],
   isProd?: boolean
 ) {
   const targetClass = targetSourceFile.getClass(
@@ -156,18 +203,14 @@ function processAnalogScript(
     outputs: Array<string> = [],
     sourceSyntaxList = ngSourceFile.getChildren()[0]; // SyntaxList
 
+  declarations.push(...autoImports);
+
   if (!Node.isSyntaxList(sourceSyntaxList)) {
     throw new Error(`[Analog] invalid source syntax list ${fileName}`);
   }
 
   for (const node of sourceSyntaxList.getChildren()) {
     if (Node.isImportDeclaration(node)) {
-      const moduleSpecifier = node.getModuleSpecifierValue();
-      if (moduleSpecifier.endsWith('.analog')) {
-        // other .ng files
-        declarations.push(node.getDefaultImport()?.getText() || '');
-      }
-
       // copy the import to the target `.analog.ts` file
       targetSourceFile.addImportDeclaration(node.getStructure());
       continue;

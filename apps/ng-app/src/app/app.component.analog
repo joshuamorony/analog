@@ -10,6 +10,7 @@
   import Highlight from './highlight.analog';
   import External from './external/external.analog';
   import { HelloOriginal } from './hello';
+  import { @Goodbye } from './my-components';
 
   defineMetadata({
     selector: 'app-root',
@@ -81,6 +82,8 @@
   <a routerLink="/">Home</a> | <a routerLink="/about">About</a>
 
   <br />
+
+  <goodbye />
 
   <router-outlet />
 </template>
